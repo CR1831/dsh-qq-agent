@@ -70,7 +70,7 @@ def _log(message: str) -> None:
     print(f"[{time.strftime('%H:%M:%S')}] {message}", flush=True)
 
 OWNER_NOTE = (
-    "对方是这个号的主人，正跟你私聊。不要自我介绍，也不要解释设定。"
+    "对方是号主，正跟你私聊。不要自我介绍，也不要解释设定。"
     "想知道这号上加过谁，用 qq_friends 查；查完直接说，别念一串 QQ 号。"
 )
 FRIEND_NOTE = (
@@ -339,7 +339,7 @@ class QQReplier:
             age = (time.time() - when) / 3600 if when else 999.0
             ago = "刚刚" if age < 1 else f"{age:.0f} 小时前"
             line = f"- {label}：{ago}找过，{count} 句"
-            # 画像里的「怎么说话」可以给主人参考——那不是对话内容，是相处感受
+            # 画像里的「怎么说话」可以给号主参考——那不是对话内容，是相处感受
             impression = str(profile.get("impression") or "").strip()
             if impression:
                 line += f"。印象：{impression}"
@@ -656,6 +656,34 @@ class QQReplier:
         return handled
 
     # ------------------------------------------------------------ 常驻
+    async def _dsh_bg_loop(self, interval: float = 15.0) -> None:
+        """Poll background DSH tasks and notify the owner when they finish.
+
+        Only started when the optional desktop package is enabled.  Errors do
+        not stop the loop; the next tick retries.
+        """
+        from . import dsh_bg
+
+        while True:
+            try:
+                await asyncio.sleep(interval)
+                done = await asyncio.to_thread(dsh_bg.tick, self.cfg.server.db_path)
+                for item in done:
+                    uid = self.owner_uid
+                    if not uid or self.adapter is None:
+                        continue
+                    channel = f"private:{uid}"
+                    segments = split_segments(str(item.get("notice") or ""), limit=5)
+                    for index, segment in enumerate(segments):
+                        if index:
+                            await asyncio.sleep(1.2)
+                        await self.adapter.send(channel, segment)
+                    await asyncio.sleep(2)
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                _log(f"后台任务轮询出错：{type(exc).__name__}: {exc}")
+
     async def listen(
         self,
         *,
@@ -726,6 +754,9 @@ class QQReplier:
                     queue.task_done()
 
         worker_task = asyncio.create_task(worker(), name="qq-reply-worker")
+        bg_task = None
+        if getattr(self.cfg.desktop, "enabled", False):
+            bg_task = asyncio.create_task(self._dsh_bg_loop(), name="dsh-bg-poller")
         started = time.time()
 
         def state(value: bool) -> None:
@@ -793,6 +824,12 @@ class QQReplier:
                 await worker_task
             except (asyncio.CancelledError, Exception):
                 pass
+            if bg_task is not None:
+                bg_task.cancel()
+                try:
+                    await bg_task
+                except (asyncio.CancelledError, Exception):
+                    pass
 
 
 __all__ = ["FRIEND_NOTE", "OWNER_NOTE", "QQReplier"]

@@ -42,9 +42,11 @@ def read_status(home: str | Path) -> dict[str, Any] | None:
 
 
 def initial_status(cfg: Any, card: Any) -> dict[str, Any]:
+    from . import __version__
+
     return {
         "ok": True,
-        "version": "0.1.0",
+        "version": __version__,
         "pid": os.getpid(),
         "startedAt": time.time(),
         "heartbeatAt": time.time(),

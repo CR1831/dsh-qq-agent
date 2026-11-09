@@ -35,10 +35,14 @@ function readBody(req) {
   })
 }
 
-async function ensureSession(ctx, sessionId, cwd) {
+async function ensureSession(ctx, sessionId, cwd, preset) {
   let resolved = await ctx.sessionController.resolveAgent(sessionId)
   if (resolved && resolved.error && resolved.error.code === 'session/not-found') {
-    await ctx.sessionController.create({ sessionId, cwd, agentPreset: 'standard' })
+    await ctx.sessionController.create({
+      sessionId,
+      cwd,
+      agentPreset: preset || 'standard',
+    })
     resolved = await ctx.sessionController.resolveAgent(sessionId)
   }
   if (resolved && resolved.error) throw new Error('session unavailable: ' + JSON.stringify(resolved.error))
@@ -74,7 +78,7 @@ async function readLastAssistant(ctx, sessionId) {
 }
 
 async function submit(ctx, text, opts) {
-  const agent = await ensureSession(ctx, opts.sessionId, opts.cwd)
+  const agent = await ensureSession(ctx, opts.sessionId, opts.cwd, opts.preset)
   const before = await readLastAssistant(ctx, opts.sessionId).catch(() => '')
   const at = Date.now()
   const message = freezeMessage({
@@ -89,8 +93,8 @@ async function submit(ctx, text, opts) {
   return { agent, before, at }
 }
 
-async function inspect(ctx, sessionId, cwd) {
-  const agent = await ensureSession(ctx, sessionId, cwd)
+async function inspect(ctx, sessionId, cwd, preset) {
+  const agent = await ensureSession(ctx, sessionId, cwd, preset)
   const entry = submissions.get(sessionId)
   const last = await readLastAssistant(ctx, sessionId).catch(() => '')
   const running = agent.status === 'running'
@@ -153,7 +157,8 @@ function apply(ctx, config = {}) {
         try {
           const url = new URL(req.url || '/', 'http://127.0.0.1')
           const sessionId = String(url.searchParams.get('sessionId') || defaultSession)
-          json(res, 200, await inspect(ctx, sessionId, cwd))
+          const preset = url.searchParams.get('preset') || undefined
+          json(res, 200, await inspect(ctx, sessionId, cwd, preset))
         } catch (error) {
           ctx.logger?.warn?.('qq-agent-desktop result failed: %s', error?.message || error)
           json(res, 500, { ok: false, error: String(error?.message || error) })
@@ -176,8 +181,10 @@ function apply(ctx, config = {}) {
           if (!text) return json(res, 400, { ok: false, error: 'text is empty' })
 
           const sessionId = String(body.sessionId || defaultSession)
+          const preset = body.agentPreset ? String(body.agentPreset) : undefined
+          const sessionCwd = body.cwd ? String(body.cwd) : cwd
           const timeoutMs = Math.min(Math.max(Number(body.timeoutMs) || 90000, 5000), 300000)
-          const started = await submit(ctx, text, { sessionId, cwd })
+          const started = await submit(ctx, text, { sessionId, cwd: sessionCwd, preset })
 
           if (body.background === true) {
             return json(res, 200, {

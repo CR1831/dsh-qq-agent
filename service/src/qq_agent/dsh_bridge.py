@@ -4,9 +4,9 @@
 不挂在 DSH 的进程树下，所以 DSH 崩了/重启了它都还在——反过来才能去管 DSH。
 
 安全边界（与 tools.py 里的调用点配合）：
-- 只在「和主账号的私信」里可用，别人问一律只回"这是主人的机器"；
+- 只在「和主账号的私信」里可用，别人问一律只回"这是号主的机器"；
 - 查询（status）只读；
-- 操作（control）要求 `confirm=True`，模型必须确认主人是明确要求了才传；
+- 操作（control）要求 `confirm=True`，模型必须确认号主是明确要求了才传；
 - `stop` 单独存在但默认不开放给模型，只有显式的 force 才执行。
 """
 
@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import shutil
 import subprocess
 import time
 import urllib.error
@@ -40,17 +42,43 @@ def _default_exe() -> str:
 EXE = _default_exe()
 PROCESS_NAME = "DeepSeek Harness"
 HOME = Path(os.environ.get("DSH_HOME") or (Path.home() / ".dsh"))
+WORKSPACE = Path.cwd()
+TASKS_ROOT = WORKSPACE / "_tasks"
+KEEP_TASK_DIRS = 30
 
 CREATE_NO_WINDOW = 0x08000000 if os.name == "nt" else 0
 
 
-def configure(*, dsh_exe: str = "", dsh_home: str = "") -> None:
+def configure(*, dsh_exe: str = "", dsh_home: str = "", workspace: str = "") -> None:
     """Apply the optional [desktop] config before the tools are called."""
-    global EXE, HOME
+    global EXE, HOME, WORKSPACE, TASKS_ROOT
     if dsh_exe:
         EXE = str(Path(dsh_exe).expanduser())
     if dsh_home:
         HOME = Path(dsh_home).expanduser()
+    if workspace:
+        WORKSPACE = Path(workspace).expanduser().resolve()
+        TASKS_ROOT = WORKSPACE / "_tasks"
+
+
+def task_dir(text: str, *, tag: str = "") -> Path:
+    """Create a per-task working directory under ``<workspace>/_tasks``.
+
+    The directory name keeps Chinese/English characters, is capped at 24 chars,
+    and only the most recent ``KEEP_TASK_DIRS`` directories are kept.
+    """
+    raw = (tag or text or "").strip()
+    slug = re.sub(r"[^\w\u4e00-\u9fff]+", "-", raw)[:24].strip("-") or "task"
+    stamp = time.strftime("%m%d-%H%M%S")
+    target = TASKS_ROOT / f"{stamp}-{slug}"
+    target.mkdir(parents=True, exist_ok=True)
+    try:
+        dirs = sorted(p for p in TASKS_ROOT.iterdir() if p.is_dir())
+        for old in dirs[:-KEEP_TASK_DIRS]:
+            shutil.rmtree(old, ignore_errors=True)
+    except OSError:
+        pass
+    return target
 
 
 def _ps(script: str, timeout: float = 15.0) -> str:
@@ -212,7 +240,7 @@ def _start(wait_seconds: float = 8.0) -> dict[str, Any]:
 def control(action: str, *, confirm: bool = False) -> dict[str, Any]:
     """对 DSH 动手：restart / start / stop。
 
-    `confirm` 必须为 True 才执行——调用方（模型）要在主人明确要求时才传。
+    `confirm` 必须为 True 才执行——调用方（模型）要在号主明确要求时才传。
     """
     act = (action or "").strip().lower()
     if act not in {"restart", "start", "stop"}:
@@ -221,7 +249,7 @@ def control(action: str, *, confirm: bool = False) -> dict[str, Any]:
         return {
             "ok": False,
             "needsConfirm": True,
-            "error": f"要执行 {act}，需要先跟主人确认，再带 confirm=true 调用",
+            "error": f"要执行 {act}，需要先跟号主确认，再带 confirm=true 调用",
             "hint": "重启会中断 DSH 里正在进行的会话；请先问一句再动手。",
         }
 
@@ -259,6 +287,7 @@ __all__ = [
     "run_task",
     "check_result",
     "find_bridge_port",
+    "task_dir",
 ]
 
 
@@ -301,12 +330,21 @@ def find_bridge_port() -> int | None:
 
 
 def run_task(
-    text: str, *, timeout_ms: int = 90000, background: bool = False
+    text: str,
+    *,
+    timeout_ms: int = 90000,
+    background: bool = False,
+    session_id: str | None = None,
+    preset: str | None = None,
+    workdir: str | None = None,
 ) -> dict[str, Any]:
     """把一条指令交给 DSH 的会话执行。
 
-    `background=True` 时不等结果，立刻返回投递回执——长任务用这个，
-    之后拿 `check_result()` 轮询。
+    - ``background=True``：不等结果，立刻返回投递回执（长任务用）
+    - ``session_id``：指定会话名；不给就用插件默认值。每次给不同名字 =
+      开一个独立会话（上下文隔离）
+    - ``preset``：用哪套 agent 能力；不填用 standard
+    - ``workdir``：这次任务的工作目录；建议配合 ``task_dir`` 使用
     """
     text = (text or "").strip()
     if not text:
@@ -316,9 +354,19 @@ def run_task(
         return {
             "ok": False,
             "error": "DSH 的 desk-bridge 没响应：要么 DSH 没开，要么插件没加载。",
-            "hint": "让主人重启一下 DSH 试试。",
+            "hint": "让号主重启一下 DSH 试试。",
         }
-    payload = {"text": text, "timeoutMs": timeout_ms, "background": bool(background)}
+    payload: dict[str, Any] = {
+        "text": text,
+        "timeoutMs": timeout_ms,
+        "background": bool(background),
+    }
+    if session_id:
+        payload["sessionId"] = session_id
+    if preset:
+        payload["agentPreset"] = preset
+    if workdir:
+        payload["cwd"] = workdir
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     req = urllib.request.Request(
         f"http://127.0.0.1:{port}/desk/run",
@@ -340,7 +388,7 @@ def run_task(
         return {"ok": False, "error": f"调用失败：{type(exc).__name__}: {exc}"}
 
 
-def check_result(session_id: str = "desk-bridge") -> dict[str, Any]:
+def check_result(session_id: str = "desk-bridge", preset: str | None = None) -> dict[str, Any]:
     """查某个会话当前是否跑完、有没有新回复（长任务轮询用）。"""
     port = find_bridge_port()
     if port is None:
@@ -349,6 +397,8 @@ def check_result(session_id: str = "desk-bridge") -> dict[str, Any]:
         f"http://127.0.0.1:{port}/desk/result"
         f"?sessionId={urllib.parse.quote(str(session_id or 'desk-bridge'))}"
     )
+    if preset:
+        url += f"&preset={urllib.parse.quote(str(preset))}"
     try:
         with _no_proxy_opener().open(url, timeout=10) as resp:
             return json.loads(resp.read().decode("utf-8") or "{}")

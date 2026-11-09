@@ -12,8 +12,22 @@ owner four tools:
 |---|---|---|
 | `dsh_status` | Read DSH process count, memory, GUI port, recent sessions | No; local PowerShell |
 | `dsh_control` | `restart` / `start` / `stop` DSH; requires `confirm=true` | No; local PowerShell |
-| `dsh_run` | Submit a message to a DSH session; optional `background=true` | Yes; `/desk/run` |
+| `dsh_run` | Submit a message to a DSH session; optional `session`, `preset`, `isolate`, `background` | Yes; `/desk/run` |
 | `dsh_result` | Poll a background task via `/desk/result` | Yes; `/desk/result` |
+
+`dsh_run` parameters:
+
+| Parameter | Meaning | Default |
+|---|---|---|
+| `session` | Session name; a new name creates an isolated context | `[desktop].session_id` |
+| `preset` | DSH agent capability profile, e.g. `qq-worker` / `qq-coder` | `standard` |
+| `isolate` | Create a new session and a per-task directory | `false` |
+| `background` | Queue the task; notify the owner when done | `false` |
+
+`isolate=true` creates `<cwd>/_tasks/<stamp-slug>/` and keeps the latest 30
+directories. `background=true` stores tasks in `<data>/dsh_tasks.json`; the QQ
+service polls every 15 seconds and reports a finished or timed-out task to the
+owner. `preset` is a capability profile, **not** a security sandbox.
 
 It is **not** a remote control for the DSH GUI, and it is not a direct shell
 from QQ. `dsh_run` submits a message to a DSH session; what that session can do

@@ -1,6 +1,6 @@
 {
   "name": "dsh-qq-agent",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "QQ-only OneBot agent panel and local service supervisor for DeepSeek Harness.",
   "license": "MIT",
   "type": "module",
@@ -26,6 +26,7 @@
     "service/config.example.toml",
     "persona.example.md",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "dsh": {

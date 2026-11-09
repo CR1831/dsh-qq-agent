@@ -704,7 +704,7 @@ def build_tools(cfg: Config | None = None) -> list[ToolSpec]:
             description=(
                 "**主动**给 QQ 好友或群发一条消息（不是回复当前会话）。"
                 "channel_id 写 private:QQ号 或 group:群号。"
-                "只有主人明确说「发吧」才调用；受白名单、限流、免打扰和主动发送窗口约束。"
+                "只有号主明确说「发吧」才调用；受白名单、限流、免打扰和主动发送窗口约束。"
                 "被拦时返回 blocked=true 和 reason——把 reason 原样说出来。"
             ),
             parameters={
@@ -722,7 +722,7 @@ def build_tools(cfg: Config | None = None) -> list[ToolSpec]:
             name="qq_friends",
             description=(
                 "查这个 QQ 号上的好友（谁加了这个号）。返回 QQ 号、昵称、备注。"
-                "只在主人私信里可用；主人问起时给完整名单，其他人问只报数量。"
+                "只在号主私信里可用；号主问起时给完整名单，其他人问只报数量。"
             ),
             parameters={"type": "object", "additionalProperties": False, "properties": {}},
             handler=tool_qq_friends,
@@ -731,7 +731,7 @@ def build_tools(cfg: Config | None = None) -> list[ToolSpec]:
             name="qq_friend_status",
             description=(
                 "看某个好友最近怎么样：年龄/等级/生日、你给他画的印象、聊过多少句、"
-                "最后一次对话是什么时候。who 不填就给全部概览。只在主人私信里可用。"
+                "最后一次对话是什么时候。who 不填就给全部概览。只在号主私信里可用。"
             ),
             parameters={
                 "type": "object",
@@ -746,14 +746,14 @@ def build_tools(cfg: Config | None = None) -> list[ToolSpec]:
             name="self_check",
             description=(
                 "看她自己现在什么状态：服务心跳、WS 连接、白名单人数、最近错误。"
-                "主人质疑「不回消息 / 变慢 / 报错」时先调这个。只读，只在主人私信里可用。"
+                "号主质疑「不回消息 / 变慢 / 报错」时先调这个。只读，只在号主私信里可用。"
             ),
             parameters={"type": "object", "additionalProperties": False, "properties": {}},
             handler=tool_self_check,
         ),
         ToolSpec(
             name="read_log",
-            description="读服务日志的最后若干行（可只保留含某个关键词的行）。只读，只在主人私信里可用。",
+            description="读服务日志的最后若干行（可只保留含某个关键词的行）。只读，只在号主私信里可用。",
             parameters={
                 "type": "object",
                 "additionalProperties": False,

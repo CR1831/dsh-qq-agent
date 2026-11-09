@@ -7,7 +7,7 @@
 ## 它是什么，不是什么
 
 `extras/desktop/` 是一个**独立的 DSH bundle**，和核心的 QQ 面板分开安装。它给
-Python 服务提供三个号主专用工具：
+Python 服务提供四个号主专用工具：
 
 | 工具 | 能做什么 | 是否需要 `/desk/*` |
 |---|---|---|
@@ -66,6 +66,39 @@ Python 服务提供三个号主专用工具：
 
    第一次只建议测 `dsh_status`；`dsh_control` 会中断 DSH 会话。
 
+## 多会话、能力档、独立目录、后台任务
+
+`dsh_run` 现在支持四个参数：
+
+| 参数 | 作用 | 不填时 |
+|---|---|---|
+| `session` | 会话名；新名字 = 独立上下文 | 用 `[desktop].session_id` |
+| `preset` | DSH agent 能力档，例如 `qq-worker` / `qq-coder` | `standard` |
+| `isolate` | `true` = 新会话 + 新任务目录 | `false` |
+| `background` | `true` = 入队，跑完主动私信号主 | `false` |
+
+**独立目录**：`isolate=true` 时在 `<cwd>/_tasks/<时间-任务名>/` 建目录，只保留最近
+30 个。重要产物要及时挪出 `_tasks`，否则会被后续任务清掉。
+
+**后台队列**：`background=true` 时任务写入 `<data>/dsh_tasks.json`，QQ 服务每 15 秒
+轮询一次；完成或超过 30 分钟没回音，会私信号主。`dsh_result` 仍然可以手动查。
+服务没在跑时不会主动通知，但队列文件还在，下次启动会继续 tick。
+
+**能力档不是硬隔离**：`qq-worker` 可以关掉文件写入/命令工具，但 DSH profile 里其他
+bundle 注册的工具仍可能对它可见。要彻底隔离需要 DSH 的 cordis `isolate`，当前没做。
+在公开版里不要把 preset 当成安全沙箱。
+
+示例：
+
+```text
+dsh_run {
+  "instruction": "整理这个目录并生成一份 README",
+  "preset": "qq-coder",
+  "isolate": true,
+  "background": true
+}
+```
+
 ## 边界与风险
 
 - **owner 校验**：`desktop.py` 只认 `private:<owner_uid>`。`owner_uid` 填错 =
@@ -73,7 +106,8 @@ Python 服务提供三个号主专用工具：
 - **`confirm` 不是密码**：`dsh_control` 要求模型传 `confirm=true`，但这是模型
   自己填的布尔值；它只能减少误触，不能抵抗被诱导的模型。
 - **`dsh_run` 最危险**：它把文字投进 DSH 会话，DSH agent 能做什么，它就能间接
-  做什么。不要把它理解成“只是问 DSH 一个问题”。
+  做什么。`preset` 只是能力档，不是安全沙箱；`background` 只是把等待搬到后台，
+  不会降低权限。
 - **本地路由**：`/desk/ping`、`/desk/run`、`/desk/result` 只接受 loopback 请求，
   但它们没有额外的认证；任何本机进程都能调用。真正的 owner 闸在 Python 侧。
 - **提示注入**：非号主私信没有这些工具；但不要把号主账号借给别人，也不要在号主
@@ -93,6 +127,7 @@ enabled = false
 ```
 
 重启 QQ 服务后，`dsh_status` / `dsh_control` / `dsh_run` / `dsh_result` 不再注册。
+`<data>/dsh_tasks.json` 是队列数据，不会自动删除；不需要可以手动删。
 
 彻底移除：
 
@@ -111,9 +146,13 @@ NapCat，也不能操作 DSH。桌面控制是**另一个** bundle，默认不�
 `extras/desktop` is an optional, separately installed DSH bundle. When
 `[desktop].enabled = true` it exposes owner-only tools: `dsh_status`
 (read-only), `dsh_control` (restart/start/stop DSH, requires `confirm=true`),
-`dsh_run` (submit a message to a DSH session, optionally in the background) and
-`dsh_result` (poll a background task). `dsh_status` and `dsh_control` use local
-PowerShell; `dsh_run` / `dsh_result` need the bundle's local `/desk/*` routes.
-It is off by default, Windows-specific, and effectively grants remote task
-execution to the owner's QQ account. Treat it as a high-risk extra, not as a
-read-only panel.
+`dsh_run` (submit a message to a DSH session, with optional `session`, `preset`,
+`isolate` and `background`) and `dsh_result` (poll a background task).
+`dsh_status` and `dsh_control` use local PowerShell; `dsh_run` / `dsh_result`
+need the bundle's local `/desk/*` routes. Background tasks are queued in
+`<data>/dsh_tasks.json` and the QQ service polls them every 15 seconds; a
+finished or timed-out task is reported to the owner. `isolate=true` creates a
+per-task directory under `<cwd>/_tasks` and keeps the latest 30. `preset` is a
+capability profile, **not** a security sandbox. It is off by default,
+Windows-specific, and effectively grants remote task execution to the owner's
+QQ account. Treat it as a high-risk extra, not as a read-only panel.

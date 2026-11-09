@@ -145,8 +145,12 @@ macOS / Linux 的安装脚本是 `scripts/install.sh`；自启请用 systemd use
 |---|---|---|
 | `dsh_status` | 查 DSH 进程、内存、GUI 端口、最近会话 | 只读，低 |
 | `dsh_control` | `restart` / `start` / `stop` DSH，要求 `confirm=true` | 会中断 DSH 会话 |
-| `dsh_run` | 把指令投进 DSH 会话执行，可后台 | 等于远程任务执行 |
+| `dsh_run` | 把指令投进 DSH 会话执行；支持 session / preset / isolate / background | 等于远程任务执行 |
 | `dsh_result` | 查后台任务有没有跑完、有没有新回复 | 只读 |
+
+`dsh_run` 的 `isolate=true` 会建 `<cwd>/_tasks/<时间-任务名>/`（只保留最近 30 个）；
+`background=true` 会写入 `<data>/dsh_tasks.json`，服务每 15 秒轮询，完成或超时主动
+私信号主。`preset` 是能力档，不是安全沙箱。
 
 **默认状态：**
 
