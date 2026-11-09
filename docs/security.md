@@ -34,14 +34,18 @@ OneBot 11 是非官方协议。NapCat 驱动真实 QQ 客户端，腾讯的风�
 - `owner_uid` 在 `friend_whitelist` 里（否则号主自己都聊不了）；
 - `qq-agent doctor` 里 owner 检查 PASS。
 
-### 3. 桌面控制（可选包）
+### 3. 桌面控制（可选包，高风险）
 
-`extras/desktop` 提供 `dsh_status` / `dsh_control` / `dsh_run`：
+`extras/desktop` 是单独安装的 DSH bundle，提供 `dsh_status` / `dsh_control` /
+`dsh_run` / `dsh_result`：
 
 - `dsh_control` 能重启/关闭 DSH；
-- `dsh_run` 能把任意指令交给 DSH 的会话，等于在机器上执行任意任务。
+- `dsh_run` 能把指令交给 DSH 的会话，等于远程任务执行；
+- `dsh_result` 查后台任务结果。
 
-它默认不安装；装了也只对 `private:<owner_uid>` 开放，`dsh_control` 还要 `confirm=true`。如果你不需要，别装。
+它默认不安装；装了也只对 `private:<owner_uid>` 开放，`dsh_control` 还要
+`confirm=true`。`confirm` 是模型传的布尔值，不是密码。完整威胁模型、安装和
+卸载见 [desktop-control.md](desktop-control.md)。如果你不需要，别装。
 
 ### 4. 图片与第三方 API
 

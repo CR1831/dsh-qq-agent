@@ -125,15 +125,37 @@ macOS / Linux 的安装脚本是 `scripts/install.sh`；自启请用 systemd use
 | `[vision].enabled` | `false` | 读图会把图片发给视觉模型 |
 | `use_profile_facts` | `false` | 不把年龄/学校/生日注入 prompt |
 | `cross_chat_digest` | `false` | 不允许号主问其他会话 |
-| 桌面控制 | 不安装 | 单独的 `extras/desktop`，见下 |
+| 桌面控制 | 不安装 | 单独的 `extras/desktop` 可选包，见下 |
 
 `qq_guard` 在代码里执行白名单、频次、免打扰、最小间隔和随机延迟；模型改不了。
 
-## 可选：桌面控制
+## 可选：桌面控制（高风险，默认关闭）
 
-`extras/desktop/` 是**单独安装**的 DSH bundle，给号主提供 `dsh_status`、`dsh_control`、`dsh_run` 三个工具。核心包不包含、不加载、不暴露任何 DSH 控制面。
+> **这不是只读面板。** 启用后，QQ 号主可以让 agent 重启/关闭 DSH，或把一段指令
+> 投进 DSH 的会话里执行。默认不安装、不启用；不需要就不要装。
 
-启用步骤见 [extras/desktop/README.md](extras/desktop/README.md)。它会增加很大的攻击面：`dsh_run` 等于让号主在机器上执行任意指令。默认不要装。
+`extras/desktop/` 是一个**独立的 DSH bundle**，必须单独安装。启用后提供四个
+号主专用工具：
+
+| 工具 | 能做什么 | 风险 |
+|---|---|---|
+| `dsh_status` | 查 DSH 进程、内存、GUI 端口、最近会话 | 只读，低 |
+| `dsh_control` | `restart` / `start` / `stop` DSH，要求 `confirm=true` | 会中断 DSH 会话 |
+| `dsh_run` | 把指令投进 DSH 会话执行，可后台 | 等于远程任务执行 |
+| `dsh_result` | 查后台任务有没有跑完、有没有新回复 | 只读 |
+
+**默认状态：**
+
+- `[desktop].enabled = false`；
+- 核心 `install.ps1` 不会安装 `extras/desktop`；
+- 不装这个 bundle、不打开配置，四个工具都不会注册。
+
+它**不是** DSH 图形界面的远程控制，也不是从 QQ 直接开 shell；`dsh_run` 投的是
+DSH 会话消息，实际能做什么取决于 DSH 里那个 agent 的工具和权限。`cwd` 决定
+DSH 会话在哪个目录工作，安装时一定要设。
+
+安装、威胁模型、验证和卸载步骤：[docs/desktop-control.md](docs/desktop-control.md)。
+英文摘要：[extras/desktop/README.md](extras/desktop/README.md)。
 
 ## 面板
 

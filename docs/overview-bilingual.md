@@ -45,7 +45,8 @@ multi-platform scraper, and it ships no character card.
 - Read-only DSH panel: heartbeat, WebSocket state, persona load state,
   allowlists, friend profiles, recent conversations, sanitized logs.
 - Optional desktop-control bundle, installed separately: `dsh_status`,
-  `dsh_control`, `dsh_run`; owner-only and off by default.
+  `dsh_control`, `dsh_run` and `dsh_result`; owner-only, high risk, and off by
+  default. It can restart DSH or submit tasks to a DSH session.
 - Windows autostart script; runtime data lives outside the repository.
 - No telemetry. Data stays under `~/.dsh/qq-agent`; outbound traffic is limited
   to the configured LLM, optional web search and optional vision API.
@@ -110,8 +111,9 @@ NapCat / OneBot 11 接入一个 QQ 号，把私聊和群消息写进本地 SQLit
 - 有边界的工具循环；带引用，模型不可用时走确定性兜底。
 - 只读 DSH 面板：心跳、WS 状态、人格卡加载状态、白名单、好友画像、最近会话、
   已脱敏日志。
-- 可选桌面控制包，单独安装：`dsh_status`、`dsh_control`、`dsh_run`；只对号主
-  开放，默认不装。
+- 可选桌面控制包，单独安装：`dsh_status`、`dsh_control`、`dsh_run`、
+  `dsh_result`；只对号主开放，高风险，默认不装。它可以重启 DSH，或把任务投进
+  DSH 会话执行。
 - Windows 开机自启脚本；运行数据全部在仓库之外。
 - 没有遥测。数据在 `~/.dsh/qq-agent`；出站只到配置的 LLM、可选的联网搜索和
   可选的视觉 API。

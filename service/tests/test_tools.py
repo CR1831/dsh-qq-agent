@@ -62,7 +62,7 @@ def test_desktop_tools_are_opt_in():
     cfg = Config()
     cfg.desktop.enabled = True
     names = {spec.name for spec in build_tools(cfg)}
-    assert {"dsh_status", "dsh_control", "dsh_run"} <= names
+    assert {"dsh_status", "dsh_control", "dsh_run", "dsh_result"} <= names
 
 
 @pytest.mark.asyncio

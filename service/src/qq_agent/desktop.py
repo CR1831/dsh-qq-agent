@@ -92,6 +92,19 @@ async def tool_dsh_run(ctx: Any, args: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+async def tool_dsh_result(ctx: Any, args: dict[str, Any]) -> dict[str, Any]:
+    if not _configured(ctx) or not _owner(ctx):
+        return _deny()
+    session_id = str(args.get("session_id") or getattr(ctx.cfg.desktop, "session_id", "qq-agent"))
+    from . import dsh_bridge
+
+    _configure(ctx)
+    try:
+        return await asyncio.to_thread(dsh_bridge.check_result, session_id)
+    except Exception as exc:
+        return {"ok": False, "error": f"查询失败：{type(exc).__name__}: {exc}"}
+
+
 def build_desktop_tools() -> list[Any]:
     from .tools import ToolSpec
 
@@ -144,7 +157,31 @@ def build_desktop_tools() -> list[Any]:
             },
             handler=tool_dsh_run,
         ),
+        ToolSpec(
+            name="dsh_result",
+            description=(
+                "查一个 background=true 的 DSH 任务有没有跑完、有没有新回复。"
+                "只在号主私信里可用。可选桌面控制包。"
+            ),
+            parameters={
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "session_id": {
+                        "type": "string",
+                        "description": "后台任务的会话 id；不填用 [desktop].session_id",
+                    }
+                },
+            },
+            handler=tool_dsh_result,
+        ),
     ]
 
 
-__all__ = ["build_desktop_tools", "tool_dsh_control", "tool_dsh_run", "tool_dsh_status"]
+__all__ = [
+    "build_desktop_tools",
+    "tool_dsh_control",
+    "tool_dsh_result",
+    "tool_dsh_run",
+    "tool_dsh_status",
+]

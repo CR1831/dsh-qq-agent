@@ -121,6 +121,8 @@ service\.venv\Scripts\python.exe -m pip install -e service
 4. 删除 `%USERPROFILE%\.dsh\qq-agent\`
 5. 删除仓库目录
 
-## 可选：桌面控制
+## 可选：桌面控制（高风险）
 
-见 [extras/desktop/README.md](../extras/desktop/README.md)。它是单独的 bundle，默认不装。
+见 [desktop-control.md](desktop-control.md)。它是单独的 DSH bundle，默认不装、
+不启用；启用后号主可以让 agent 重启/关闭 DSH 或把指令投进 DSH 会话执行。
+不需要就不要装。
