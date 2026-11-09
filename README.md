@@ -9,6 +9,22 @@
 
 仓库里**没有任何人格卡**。安装后你必须自己放一张；没有卡，服务不会启动。
 
+## Overview / 概览
+
+**English.** `dsh-qq-agent` is a QQ-only OneBot 11 agent for DeepSeek Harness:
+NapCat carries the QQ connection, a Python service keeps a local SQLite index
+and runs a bounded tool loop, and a read-only DSH sidebar shows service state.
+Replies are generated from a persona card **you** provide; the repository ships
+no character. Every outbound message passes allowlists, rate limits, quiet
+hours, random delay and a global `dry_run` switch.
+
+**中文。** `dsh-qq-agent` 是面向 DeepSeek Harness 的 QQ-only OneBot 11 agent：
+NapCat 负责 QQ 连接，Python 服务维护本地 SQLite 索引并跑有边界的工具循环，
+DSH 侧栏只读显示服务状态。回复使用**你自己提供**的人格卡，仓库不内置角色；
+每条外发都过白名单、限频、免打扰、随机延迟和全局 `dry_run`。
+
+完整的中英双语说明见 [docs/overview-bilingual.md](docs/overview-bilingual.md)。
+
 ## 架构
 
 ```text
