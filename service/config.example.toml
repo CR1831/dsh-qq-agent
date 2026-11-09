@@ -80,10 +80,11 @@ cache_dir = "data/image_cache"
 cache_days = 14
 
 [desktop]
-# 可选桌面控制包。只有安装了 extras/desktop 并在这里打开才生效。
+# 高风险可选包：启用后号主可重启/关闭 DSH，或把指令投进 DSH 会话执行。
+# 只有安装了 extras/desktop 并在这里打开才生效；不需要就别开。
 enabled = false
 dsh_exe = ""
 dsh_home = ""
 session_id = "qq-agent"
-cwd = ""
+cwd = ""            # 建议填工作区绝对路径；空 = 服务进程 cwd
 timeout_ms = 90000
