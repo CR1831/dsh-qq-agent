@@ -1,13 +1,14 @@
-# INACTIVE COPY. GitHub rejected .github/workflows/ci.yml because the gh OAuth token lacks the workflow scope.
-# Fix: gh auth refresh -h github.com -s workflow
-# Then: mkdir .github\workflows; move docs/ci.yml .github\workflows/ci.yml; git add; git commit; git push
+# INACTIVE COPY. The gh OAuth token used for the first push lacks the workflow
+# scope, so GitHub rejects any commit that adds .github/workflows/ci.yml.
+# Fix, then move this file back:
+#   gh auth refresh -h github.com -s workflow
+#   mkdir .github\workflows
+#   move docs\ci.yml .github\workflows\ci.yml
+#   git add .github/workflows/ci.yml
+#   git commit -m "Add CI"
+#   git push
 
-# This file is NOT active as a GitHub Actions workflow yet.
-# The current gh OAuth token has no `workflow` scope, so GitHub rejects
-# pushes that create/update files under .github/workflows/.
-# After running:  gh auth refresh -h github.com -s workflow
-# move this file back to .github/workflows/ci.yml and push.
-#name: ci
+name: ci
 
 on:
   push:
@@ -59,4 +60,3 @@ jobs:
           tomllib.load(open("service/pyproject.toml", "rb"))
           print("manifests ok")
           PY
-
