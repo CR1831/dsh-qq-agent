@@ -1,5 +1,7 @@
 # dsh-qq-agent
 
+**版本 / Version:** 0.2.0 · [Changelog](CHANGELOG.md)
+
 一个只做 QQ 的 OneBot 11 agent：收私聊/群消息，检索本地索引，按你自己放的人格卡回复；发送前过代码硬闸。
 
 它由两部分组成：
@@ -28,6 +30,18 @@ DSH 侧栏只读显示服务状态。回复使用**你自己提供**的人格卡
 每条外发都过白名单、限频、免打扰、随机延迟和全局 `dry_run`。
 
 完整的中英双语说明见 [docs/overview-bilingual.md](docs/overview-bilingual.md)。
+
+## 0.2.0 更新
+
+- 可选桌面包增加后台任务队列：`background=true` 入队，完成/超时主动私信号主；
+  同步超时会自动转入队列，不再丢结果。
+- 可选桌面包增加 `dsh_result`，用于手动查后台任务。
+- `dsh_run` 支持 `session` / `preset` / `isolate` / `background`；
+  `isolate=true` 会在 `<cwd>/_tasks/` 下开独立目录，只保留最近 30 个。
+- DSH desk bridge 支持 `agentPreset` 和每次请求的 `cwd`。
+- `preset` 是能力档，不是安全沙箱；完整说明见
+  [docs/desktop-control.md](docs/desktop-control.md)。
+- 版本从 0.1.0 升到 0.2.0；变更清单见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 架构
 
@@ -191,6 +205,34 @@ DSH 会话在哪个目录工作，安装时一定要设。
 - 群历史接口一次最多几百条，深历史要靠定时增量拉取。
 - SQLite 单机够用到十万级；再大需要换存储。
 - DSH 插件按 0.2.2-rc.1 的接口写；升级 DSH 后先看面板是否正常。
+- 可选桌面包默认关闭，且只在 Windows 上验证；`preset` 不是硬隔离，
+  `_tasks` 只保留最近 30 个任务目录。
+- 后台任务通知依赖 QQ 服务在跑；服务停着时不会主动发消息，但任务文件会保留。
+
+## 文档索引
+
+| 文档 | 讲什么 |
+|---|---|
+| [docs/install.md](docs/install.md) | 安装、DSH bundle、开机自启、升级/卸载 |
+| [docs/napcat.md](docs/napcat.md) | NapCat / OneBot 11 接入与故障对照 |
+| [docs/persona-card.md](docs/persona-card.md) | 人格卡格式、校验、写法、边界 |
+| [docs/desktop-control.md](docs/desktop-control.md) | 可选桌面包：能力、安装、威胁模型、卸载 |
+| [docs/security.md](docs/security.md) | 默认安全值、owner 校验、密钥与数据 |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | 起不来、不回消息、面板不显示 |
+| [docs/overview-bilingual.md](docs/overview-bilingual.md) | 完整中英双语说明 |
+| [docs/github.md](docs/github.md) | 发布、审计、打 tag |
+| [CHANGELOG.md](CHANGELOG.md) | 版本变更 |
+
+## 一句话速查
+
+```text
+服务起不来/不回消息  → docs/troubleshooting.md（先 qq-agent doctor / self_check）
+QQ 连不上 NapCat     → docs/napcat.md
+人格卡被拒           → docs/persona-card.md（qq-agent persona --check）
+面板不显示           → 确认 bundle 指向仓库根目录，刷新/重启 DSH
+想远程让 DSH 干活    → docs/desktop-control.md（默认关闭，高风险）
+想发布               → docs/github.md
+```
 
 ## 开发
 
