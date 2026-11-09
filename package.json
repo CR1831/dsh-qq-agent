@@ -40,10 +40,6 @@
     "node": "^22.19.0 || >=24.0.0",
     "dsh": "^0.2.2-rc.1"
   },
-  "peerDependencies": {
-    "@deepseek-ai/dsh-client-locale": "*",
-    "@deepseek-ai/dsh-client-ui-conversation": "*"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/CR1831/dsh-qq-agent.git"
