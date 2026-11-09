@@ -1,0 +1,33 @@
+# Runtime home may be inside the checkout during development; never commit it.
+config.toml
+config.toml.*
+persona.md
+persona.example.local.md
+data/
+logs/
+exports/
+*.db
+*.db-wal
+*.db-shm
+*.log
+*.json.tmp
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+service/.venv/
+*.egg-info/
+build/
+dist/
+
+# Node / DSH
+node_modules/
+.pnpm-store/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

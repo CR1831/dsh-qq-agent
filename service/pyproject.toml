@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dsh-qq-agent"
+version = "0.1.0"
+description = "QQ-only OneBot 11 agent with retrieval, guarded replies and a user-supplied persona card."
+readme = { text = "QQ-only OneBot 11 agent. The full documentation lives in the repository README.", content-type = "text/markdown" }
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "dsh-qq-agent contributors" }]
+keywords = ["qq", "onebot", "napcat", "agent", "dsh"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "httpx>=0.27",
+  "websockets>=12",
+  "beautifulsoup4>=4.12",
+  "lxml>=5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+]
+desktop = []
+
+[project.scripts]
+qq-agent = "qq_agent.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]

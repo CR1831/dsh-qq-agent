@@ -1,0 +1,51 @@
+{
+  "name": "dsh-qq-agent",
+  "version": "0.1.0",
+  "description": "QQ-only OneBot agent panel and local service supervisor for DeepSeek Harness.",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "service/src",
+    "service/pyproject.toml",
+    "service/config.example.toml",
+    "persona.example.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    },
+    "manifestVersion": 1
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": "^0.2.2-rc.1"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-client-locale": "*",
+    "@deepseek-ai/dsh-client-ui-conversation": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CR1831/dsh-qq-agent.git"
+  }
+}

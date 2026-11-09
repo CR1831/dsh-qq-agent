@@ -1,0 +1,62 @@
+# INACTIVE COPY. GitHub rejected .github/workflows/ci.yml because the gh OAuth token lacks the workflow scope.
+# Fix: gh auth refresh -h github.com -s workflow
+# Then: mkdir .github\workflows; move docs/ci.yml .github\workflows/ci.yml; git add; git commit; git push
+
+# This file is NOT active as a GitHub Actions workflow yet.
+# The current gh OAuth token has no `workflow` scope, so GitHub rejects
+# pushes that create/update files under .github/workflows/.
+# After running:  gh auth refresh -h github.com -s workflow
+# move this file back to .github/workflows/ci.yml and push.
+#name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        working-directory: service
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Test
+        working-directory: service
+        run: python -m pytest -q
+
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: JavaScript syntax
+        run: |
+          node --check index.js
+          node --check client.js
+          node --check extras/desktop/lib/index.js
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Manifest / locale parse
+        run: |
+          python - <<'PY'
+          import json, tomllib
+          for path in ["package.json", "locale/zh.json", "locale/en.json", "extras/desktop/package.json"]:
+              json.load(open(path, encoding="utf-8"))
+          tomllib.load(open("service/pyproject.toml", "rb"))
+          print("manifests ok")
+          PY
+

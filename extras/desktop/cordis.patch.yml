@@ -1,0 +1,9 @@
+# Optional desktop-control bridge.  Install this bundle only if you want the
+# QQ owner to hand tasks to a local DSH session.
+# Set cwd to the workspace you want that session to use; empty = process.cwd().
+- insert:
+    - id: qq-agent-desktop
+      name: dsh-qq-agent-desktop
+      config:
+        sessionId: qq-agent
+        cwd: ''

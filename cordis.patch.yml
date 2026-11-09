@@ -1,0 +1,10 @@
+# qq-agent bundle: one Host route + one sidebar panel.
+# No absolute paths: the runtime home is resolved from config.home, then
+# QQ_AGENT_HOME, then ~/.dsh/qq-agent.
+- insert:
+    - id: qq-agent
+      name: dsh-qq-agent
+      config:
+        home: ''
+        showLogs: true
+        showPreviews: false

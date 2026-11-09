@@ -1,0 +1,89 @@
+# qq-agent 配置样例。
+# 复制到 %USERPROFILE%\.dsh\qq-agent\config.toml（Linux/macOS: ~/.dsh/qq-agent/config.toml），
+# 再按需修改。所有字段都可以用环境变量覆盖：
+#   QQ_AGENT_AGENT__API_KEY=sk-xxx
+#   QQ_AGENT_QQ__API_BASE=http://127.0.0.1:3000
+
+[agent]
+base_url = "https://api.deepseek.com/v1"
+api_key = ""                 # 留空 = 不调用大模型，走确定性的关键词检索
+model = "deepseek-chat"
+temperature = 0.4
+max_tokens = 800
+max_tool_rounds = 4
+timeout = 60.0
+allow_heuristic_fallback = true
+
+[qq]
+enabled = false              # 配好下面几项后改成 true
+api_base = "http://127.0.0.1:3000"
+access_token = ""            # NapCat 的 HTTP / WS token
+ws_url = "ws://127.0.0.1:3001"
+self_id = 0                  # 机器人小号的 QQ 号
+owner_uid = 0                # 号主本人的 QQ 号
+watch_groups = []            # 要索引的群号
+history_limit = 200
+live_fetch = true
+
+# 人格卡：必须由使用者自己提供；没有卡服务不会启动。
+persona_file = "persona.md"  # 相对路径基于 home；支持 .md/.txt/.json/.png
+display_name = ""            # 面板显示名；留空用 QQ 昵称，不解析卡内容
+knowledge_dir = ""           # 可选：这个目录下的 *.md 会拼在人设后面
+use_profile_facts = false    # 是否把 QQ 资料（年龄/学校/生日）注入 prompt
+cross_chat_digest = false    # 是否允许号主问“别人找我聊了什么”
+vision_hints = ""            # 可选：看图时的人物识别提示；默认不猜人物
+owner_note = ""              # 可选：只对号主生效的额外说明
+data_dir = "data/qq"         # 相对路径基于 home
+
+# 发送护栏（代码硬闸，不靠提示词）
+dry_run = true               # 默认只生成草稿，不发送；确认后再关
+friend_whitelist = []        # 允许私聊的 QQ 号；空 = 一律不回
+group_whitelist = []         # 允许说话的群；空 = 群里一句不说
+group_require_at = true      # 群里只被 @ 才回
+proactive = false            # 只被动回复；主动发送需要临时授权
+rate_per_minute = 1
+rate_per_hour = 20
+rate_per_day = 200
+min_interval_seconds = 30.0
+quiet_hours = [23, 0, 1, 2, 3, 4, 5, 6, 7]
+reply_delay_min = 1.0
+reply_delay_max = 5.0
+max_chars = 300
+sticker_min_minutes = 20.0
+alert_after_minutes = 10.0
+max_segments = 5
+split_private = false
+history_turns = 8
+history_keep = 60
+history_peers = 20
+history_max_chars = 800
+
+[websearch]
+enabled = true
+provider = "bing"
+timeout = 20.0
+max_results = 5
+raise_on_empty = false
+
+[vision]
+# 读图会把图片发给视觉模型；默认关。介意隐私就别开。
+enabled = false
+model = "deepseek-flash"
+base_url = ""
+api_key = ""
+detail = "low"
+max_tokens = 320
+timeout = 25.0
+thumb = "@480w_270h_1c.jpg"
+max_bytes = 4000000
+cache_dir = "data/image_cache"
+cache_days = 14
+
+[desktop]
+# 可选桌面控制包。只有安装了 extras/desktop 并在这里打开才生效。
+enabled = false
+dsh_exe = ""
+dsh_home = ""
+session_id = "qq-agent"
+cwd = ""
+timeout_ms = 90000

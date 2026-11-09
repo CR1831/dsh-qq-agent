@@ -1,0 +1,27 @@
+{
+  "name": "dsh-qq-agent-desktop",
+  "version": "0.1.0",
+  "description": "Optional local desk bridge: lets the QQ owner hand a task to a DSH session.",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "files": [
+    "lib/index.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "@deepseek-ai/dsh-llm": "*"
+  },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "manifestVersion": 1
+  },
+  "engines": {
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": "^0.2.2-rc.1"
+  }
+}
