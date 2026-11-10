@@ -40,6 +40,8 @@ multi-platform scraper, and it ships no character card.
   filters, BM25, optional LLM judging, MMR and per-author quotas.
 - Persona-card compatibility: Markdown/TXT, SillyTavern JSON, SillyTavern PNG;
   no bundled persona.
+- Owner-only history search across local conversations (`history_search`), with
+  the last 8 turns kept in prompt and older records available on demand.
 - Guarded replies with fail-closed defaults and a dry-run mode.
 - Bounded tool loop with citations and a deterministic fallback.
 - Read-only DSH panel: heartbeat, WebSocket state, persona load state,
@@ -108,6 +110,8 @@ NapCat / OneBot 11 接入一个 QQ 号，把私聊和群消息写进本地 SQLit
 - 本地优先的检索：SQLite FTS5、中文二元组索引、去重、关键词过滤、BM25、可选
   模型判定、MMR、单作者配额。
 - 人格卡兼容：Markdown/TXT、SillyTavern JSON、SillyTavern PNG；不内置人格。
+- 号主专用的本地历史检索（`history_search`）：prompt 只带最近 8 条，更早记录
+  按需查，不一次性塞进上下文。
 - 失败关闭的发送护栏 + dry-run 草稿模式。
 - 有边界的工具循环；带引用，模型不可用时走确定性兜底。
 - 只读 DSH 面板：心跳、WS 状态、人格卡加载状态、白名单、好友画像、最近会话、

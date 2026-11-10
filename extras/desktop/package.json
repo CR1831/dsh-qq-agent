@@ -1,6 +1,6 @@
 {
   "name": "dsh-qq-agent-desktop",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Optional high-risk local desk bridge: lets the QQ owner restart DSH or hand a task to a DSH session.",
   "license": "MIT",
   "type": "module",

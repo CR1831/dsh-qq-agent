@@ -50,6 +50,7 @@ def make_ctx(tmp_path: Path, *, channel: str = "", dry_run: bool = True):
 def test_core_toolset_is_qq_only():
     names = {spec.name for spec in build_tools(Config())}
     assert "social_search" in names
+    assert "history_search" in names
     assert "social_send" in names
     assert "qq_friends" in names
     assert "bilibili_video" not in names

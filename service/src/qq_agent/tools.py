@@ -618,6 +618,39 @@ async def tool_read_log(ctx: ToolContext, args: dict[str, Any]) -> dict[str, Any
     }
 
 
+async def tool_history_search(ctx: ToolContext, args: dict[str, Any]) -> dict[str, Any]:
+    """Search the local conversation history; owner-only."""
+    if not _is_owner_channel(ctx):
+        return {
+            "ok": False,
+            "error": "别人的聊天记录，不往外翻。",
+            "hint": "一句挡回去。",
+        }
+
+    from . import history_search
+
+    query = str(args.get("query") or "").strip()
+    person = str(args.get("person") or "").strip()
+    if not query and not person:
+        person = str(getattr(ctx.cfg.qq, "owner_uid", "") or "")
+
+    try:
+        if query:
+            return await asyncio.to_thread(
+                history_search.search, ctx.cfg.server.db_path, query, person=person
+            )
+        try:
+            turns = int(args.get("turns") or 15)
+        except (TypeError, ValueError):
+            turns = 15
+        channel = person if ":" in person else f"private:{person}"
+        return await asyncio.to_thread(
+            history_search.recent, ctx.cfg.server.db_path, channel, turns=turns
+        )
+    except Exception as exc:
+        return {"ok": False, "error": f"翻记录失败：{type(exc).__name__}: {exc}"}
+
+
 def build_tools(cfg: Config | None = None) -> list[ToolSpec]:
     specs = [
         ToolSpec(
@@ -741,6 +774,36 @@ def build_tools(cfg: Config | None = None) -> list[ToolSpec]:
                 },
             },
             handler=tool_qq_friend_status,
+        ),
+        ToolSpec(
+            name="history_search",
+            description=(
+                "翻本地历史对话。两种用法：\n"
+                "1. 给 query → 按关键词搜（「上次说的那个书名」「他什么时候提过离职」）\n"
+                "2. 只给 person → 看这个人最近聊了什么（「上次聊到哪了」）\n"
+                "prompt 里只有最近 8 条，更早记录（每人最多 60 条）在这里能查到。\n"
+                "号主问「你记得吗 / 上次 / 之前」时先搜一下，别直接说记不清。"
+                "只在号主私信里可用。"
+            ),
+            parameters={
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "关键词；不填则改成看这个人的最近对话",
+                    },
+                    "person": {
+                        "type": "string",
+                        "description": "QQ 号；不填默认查和号主的对话",
+                    },
+                    "turns": {
+                        "type": "integer",
+                        "description": "只在「看最近对话」时有效：看最近多少条，默认 15，最大 60",
+                    },
+                },
+            },
+            handler=tool_history_search,
         ),
         ToolSpec(
             name="self_check",

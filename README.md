@@ -1,6 +1,6 @@
 # dsh-qq-agent
 
-**版本 / Version:** 0.2.0 · [Changelog](CHANGELOG.md)
+**版本 / Version:** 0.3.0 · [Changelog](CHANGELOG.md)
 
 一个只做 QQ 的 OneBot 11 agent：收私聊/群消息，检索本地索引，按你自己放的人格卡回复；发送前过代码硬闸。
 
@@ -31,17 +31,16 @@ DSH 侧栏只读显示服务状态。回复使用**你自己提供**的人格卡
 
 完整的中英双语说明见 [docs/overview-bilingual.md](docs/overview-bilingual.md)。
 
-## 0.2.0 更新
+## 0.3.0 更新
 
-- 可选桌面包增加后台任务队列：`background=true` 入队，完成/超时主动私信号主；
-  同步超时会自动转入队列，不再丢结果。
-- 可选桌面包增加 `dsh_result`，用于手动查后台任务。
-- `dsh_run` 支持 `session` / `preset` / `isolate` / `background`；
-  `isolate=true` 会在 `<cwd>/_tasks/` 下开独立目录，只保留最近 30 个。
-- DSH desk bridge 支持 `agentPreset` 和每次请求的 `cwd`。
-- `preset` 是能力档，不是安全沙箱；完整说明见
+- 新增 `history_search`：跨联系人搜索 `history.json`，或查看某个人最近的对话；
+  prompt 里只有最近 8 条，更早记录（每人最多 60 条）现在能查。
+- 扩展开口授权词：除了「发吧」，现在「可以找我」「随时找我」「有事找我」
+  「不用等我」这类短句也会开 5 分钟主动发送窗口。
+- 从 0.2.0 起，可选桌面包支持后台任务队列、`dsh_result`、
+  `session` / `preset` / `isolate` / `background`；完整说明见
   [docs/desktop-control.md](docs/desktop-control.md)。
-- 版本从 0.1.0 升到 0.2.0；变更清单见 [CHANGELOG.md](CHANGELOG.md)。
+- 版本从 0.2.0 升到 0.3.0；变更清单见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 架构
 
@@ -130,6 +129,16 @@ macOS / Linux 的安装脚本是 `scripts/install.sh`；自启请用 systemd use
 - `--allow-no-persona` 只给开发测试用。
 
 你的卡只放在运行目录，不进仓库、不进插件、不进日志。仓库只提供 `persona.example.md` 这个**格式模板**，它本身不可用。
+
+## 历史对话检索
+
+`history_search` 是号主私信专用工具：
+
+- 给 `query`：跨联系人搜 `history.json`，命中片段带前后各一句上下文；
+- 只给 `person`：看这个人最近聊了什么，默认最近 15 条、最多 60 条。
+
+prompt 里只注入最近 8 条对话；更早的记录仍然在本地，需要时用这个工具查，而不是一直塞进上下文。
+它不会把 A 的对话转给 B；只对 `private:<owner_uid>` 开放。
 
 ## 默认安全值
 

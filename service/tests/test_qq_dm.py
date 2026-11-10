@@ -6,7 +6,7 @@ from types import SimpleNamespace
 import pytest
 
 from qq_agent.config import Config
-from qq_agent.qq_dm import QQReplier
+from qq_agent.qq_dm import QQReplier, looks_like_grant
 
 OWNER = 10001
 BOT = 10000
@@ -163,3 +163,11 @@ async def test_friend_request_ignored(tmp_path: Path):
     event = {"post_type": "request", "request_type": "friend", "user_id": FRIEND}
     assert await replier.handle(event) is None
     assert adapter.sent == []
+
+
+def test_grant_covers_find_me_but_not_refusal():
+    assert looks_like_grant("可以找我")
+    assert looks_like_grant("随时找我")
+    assert looks_like_grant("发吧")
+    assert not looks_like_grant("别找我了")
+    assert not looks_like_grant("他刚才说发吧")

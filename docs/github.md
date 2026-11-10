@@ -105,11 +105,11 @@ git grep -nE "[1-9][0-9]{8,10}" -- .
 ## 6. 打 tag / Release
 
 ```powershell
-git tag -a v0.2.0 -m "v0.2.0"
-git push origin v0.2.0
+git tag -a v0.3.0 -m "v0.3.0"
+git push origin v0.3.0
 ```
 
-网页：Releases → Draft a new release → 选 `v0.2.0` → 写变更说明。
+网页：Releases → Draft a new release → 选 `v0.3.0` → 写变更说明。
 
 ## 7. 如果误推了密钥
 

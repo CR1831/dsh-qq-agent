@@ -11,6 +11,6 @@ from .config import Config, load_config  # noqa: E402
 from .models import Doc  # noqa: E402
 from .store import Store  # noqa: E402
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = ["QQAgent", "AgentReply", "Config", "load_config", "Doc", "Store", "__version__"]
