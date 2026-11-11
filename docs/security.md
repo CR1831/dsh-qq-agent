@@ -68,6 +68,9 @@ logs/service.log     连接与错误日志（已去掉消息正文）
 
 它们都是明文。磁盘加密、系统账户权限、备份策略自己负责。
 
+`[alert].smtp_password` 是明文；QQ 邮箱请用授权码，不要用登录密码。`auto_restart_napcat`
+会执行你配置的 `napcat_home\napcat_launcher`，只在你确认该路径可信时打开。
+
 ### 6. 面板
 
 面板只读，不解析人格卡，不直连 NapCat。它通过 DSH 的本地 web server 提供 `/qq-agent/state`。不要把 DSH 的 web server 暴露到公网或不可信局域网。

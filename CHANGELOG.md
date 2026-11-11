@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.4.0
+
+### NapCat watchdog
+
+- Added opt-in automatic NapCat restart: after `restart_napcat_after_minutes`
+  (default 2), run `napcat_home\napcat_launcher <self_id>` once. It is off by
+  default and requires both `auto_restart_napcat=true` and a configured
+  `napcat_home`.
+- The restart decision is one-shot per outage; repeated attempts are avoided so
+  a QR-code login is not interrupted.
+- Alert payloads now include `auto_restarted`.
+
+### Optional email alert
+
+- Added `[alert]`: when NapCat stays offline past the threshold, send one email
+  through SMTP. `email_to` / `smtp_host` empty means disabled.
+- SMTP login uses stdlib only; the password is plaintext in `config.toml`, so
+  an app password and local file permissions are recommended.
+- The email is sent in a worker thread and does not block the reconnect loop.
+
+### Notes
+
+- No private NapCat path or email address is hardcoded; all values come from
+  the user's `config.toml`.
+- `dry_run`, allowlists and the existing guards are unchanged.
+
 ## 0.3.0
 
 ### History search

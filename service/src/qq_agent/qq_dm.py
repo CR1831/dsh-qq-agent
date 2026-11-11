@@ -376,6 +376,59 @@ class QQReplier:
         except Exception as exc:
             _log(f"高危报告失败：{type(exc).__name__}: {exc}")
 
+    async def _alert_email(self, *, minutes: float, auto_restarted: bool = False) -> None:
+        """掉线超过阈值时发一封可选的邮件提醒。
+
+        QQ 掉线时消息收不到，邮件是能跨设备到达的渠道。配置在 ``[alert]``；
+        全部留空则不发送。SMTP 握手放在线程里，不能拖住重连循环。
+        """
+        alert = self.cfg.alert
+        to = str(getattr(alert, "email_to", "") or "").strip()
+        host = str(getattr(alert, "smtp_host", "") or "").strip()
+        if not to or not host:
+            return
+
+        home = str(getattr(self.cfg.qq, "napcat_home", "") or "").strip()
+        launcher = str(getattr(self.cfg.qq, "napcat_launcher", "") or "launcher-user.bat")
+        qq = str(getattr(self.cfg.qq, "self_id", "") or "")
+        where = home or "NapCat 安装目录"
+        extra = "（已尝试自动重启一次 NapCat）" if auto_restarted else ""
+        body = (
+            f"已经 {minutes:.0f} 分钟连不上 NapCat。{extra}\n\n"
+            "大概率是 QQ 掉登录，需要人工处理：\n"
+            f"1. 看 {where} 下有没有二维码（常见是 cache\\qrcode.png），有就扫\n"
+            f"2. 或手动启动 {where}\\{launcher}" + (f" {qq}" if qq else "") + "\n\n"
+            "服务本身还在跑，NapCat 恢复后会自动重连。\n"
+        )
+
+        def send() -> None:
+            import smtplib
+            from email.message import EmailMessage
+
+            msg = EmailMessage()
+            msg["Subject"] = "QQ agent 掉线了"
+            msg["From"] = str(getattr(alert, "smtp_user", "") or to)
+            msg["To"] = to
+            msg.set_content(body)
+            timeout = float(getattr(alert, "timeout", 15) or 15)
+            port = int(getattr(alert, "smtp_port", 465) or 465)
+            user = str(getattr(alert, "smtp_user", "") or "")
+            password = str(getattr(alert, "smtp_password", "") or "")
+            if getattr(alert, "smtp_ssl", True):
+                server = smtplib.SMTP_SSL(host, port, timeout=timeout)
+            else:
+                server = smtplib.SMTP(host, port, timeout=timeout)
+            with server:
+                if user:
+                    server.login(user, password)
+                server.send_message(msg)
+
+        try:
+            await asyncio.to_thread(send)
+            _log(f"已发送掉线提醒邮件到 {to}")
+        except Exception as exc:
+            _log(f"掉线提醒邮件发送失败：{type(exc).__name__}: {exc}")
+
     # ------------------------------------------------------------ 媒体
     async def _describe_media(self, media: dict[str, list[dict[str, Any]]]) -> str:
         """把图片读成文字；读不到就返回空，上层退化成占位提示。"""
@@ -715,6 +768,15 @@ class QQReplier:
         watchdog = qq_watchdog.Watchdog(
             qq_watchdog.alert_path(self.cfg.server.db_path),
             threshold_min=float(getattr(self.cfg.qq, "alert_after_minutes", 10) or 10),
+            auto_restart=bool(getattr(self.cfg.qq, "auto_restart_napcat", False)),
+            restart_after_min=float(
+                getattr(self.cfg.qq, "restart_napcat_after_minutes", 2) or 2
+            ),
+            qq_number=str(getattr(self.cfg.qq, "self_id", "") or ""),
+            napcat_home=str(getattr(self.cfg.qq, "napcat_home", "") or ""),
+            launcher=str(
+                getattr(self.cfg.qq, "napcat_launcher", "") or "launcher-user.bat"
+            ),
         )
         stop = asyncio.Event()
 
@@ -815,6 +877,15 @@ class QQReplier:
                     _log(f"连不上 NapCat（{type(exc).__name__}），{retry:.0f} 秒后重试")
                     if watchdog.mark_down():
                         _log(f"⚠ 已掉线超过 {watchdog.threshold / 60:.0f} 分钟，已报警")
+                        try:
+                            asyncio.create_task(
+                                self._alert_email(
+                                    minutes=watchdog.threshold / 60,
+                                    auto_restarted=watchdog.restarted,
+                                )
+                            )
+                        except Exception:
+                            pass
                 if timeout is not None and time.time() - started > timeout:
                     break
                 await asyncio.sleep(retry)

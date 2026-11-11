@@ -1,6 +1,6 @@
 # dsh-qq-agent
 
-**版本 / Version:** 0.3.0 · [Changelog](CHANGELOG.md)
+**版本 / Version:** 0.4.0 · [Changelog](CHANGELOG.md)
 
 一个只做 QQ 的 OneBot 11 agent：收私聊/群消息，检索本地索引，按你自己放的人格卡回复；发送前过代码硬闸。
 
@@ -30,6 +30,16 @@ DSH 侧栏只读显示服务状态。回复使用**你自己提供**的人格卡
 每条外发都过白名单、限频、免打扰、随机延迟和全局 `dry_run`。
 
 完整的中英双语说明见 [docs/overview-bilingual.md](docs/overview-bilingual.md)。
+
+## 0.4.0 更新
+
+- NapCat 掉线看门狗增加**可选**自动重启：默认关闭；配置 `napcat_home` 并打开
+  `auto_restart_napcat` 后，掉线到阈值会执行一次 `launcher-user.bat`，不会反复
+  打断扫码流程。
+- 掉线超过阈值时可以发**可选邮件提醒**（`[alert]`）。QQ 已经收不到消息时，
+  邮件是能跨设备到达的渠道；默认不配置、不发送。
+- 自动重启和邮件都只使用你填写的本地配置，不包含任何私有路径或账号。
+- 0.3.0 的历史检索和主动发送授权词保留。
 
 ## 0.3.0 更新
 
@@ -156,6 +166,32 @@ prompt 里只注入最近 8 条对话；更早的记录仍然在本地，需要�
 
 `qq_guard` 在代码里执行白名单、频次、免打扰、最小间隔和随机延迟；模型改不了。
 
+## 掉线自动重启与邮件报警
+
+NapCat 掉登录时，服务会一直重连，但人不在电脑前就没人知道。默认行为仍然只是
+本地报警（`ALERT.json` + Windows 托盘气泡）。两个可选项：
+
+```toml
+[qq]
+auto_restart_napcat = false       # 默认关；打开前必须填 napcat_home
+restart_napcat_after_minutes = 2.0
+napcat_home = "C:\\NapCat\\Shell"
+napcat_launcher = "launcher-user.bat"
+
+[alert]
+email_to = ""                     # 留空 = 不发邮件
+smtp_host = ""                    # 例如 smtp.qq.com
+smtp_port = 465
+smtp_user = ""
+smtp_password = ""                # 用授权码，不要用登录密码
+smtp_ssl = true
+timeout = 15.0
+```
+
+自动重启只尝试一次；如果 NapCat 需要扫码，反复重启只会打断扫码流程。
+邮件在 `mark_down()` 跨过阈值时异步发送，不阻塞重连循环。SMTP 密码是明文配置，
+放在运行目录的 `config.toml` 里，注意本机权限和备份。
+
 ## 可选：桌面控制（高风险，默认关闭）
 
 > **这不是只读面板。** 启用后，QQ 号主可以让 agent 重启/关闭 DSH，或把一段指令
@@ -237,6 +273,7 @@ DSH 会话在哪个目录工作，安装时一定要设。
 ```text
 服务起不来/不回消息  → docs/troubleshooting.md（先 qq-agent doctor / self_check）
 QQ 连不上 NapCat     → docs/napcat.md
+又掉线了             → 看 ALERT.json / 邮件；自动重启配置见 README「掉线自动重启」
 人格卡被拒           → docs/persona-card.md（qq-agent persona --check）
 面板不显示           → 确认 bundle 指向仓库根目录，刷新/重启 DSH
 想远程让 DSH 干活    → docs/desktop-control.md（默认关闭，高风险）

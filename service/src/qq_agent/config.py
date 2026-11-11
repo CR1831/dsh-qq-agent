@@ -82,6 +82,12 @@ class QQConfig:
     history_peers: int = 20
     history_max_chars: int = 800
 
+    # ---- NapCat watchdog (opt-in; off by default) --------------------------
+    auto_restart_napcat: bool = False
+    restart_napcat_after_minutes: float = 2.0
+    napcat_home: str = ""                # directory containing launcher-user.bat
+    napcat_launcher: str = "launcher-user.bat"
+
 
 @dataclass
 class WebSearchConfig:
@@ -113,12 +119,26 @@ class DesktopConfig:
 
 
 @dataclass
+class AlertConfig:
+    """Optional email alert when NapCat stays offline past the threshold."""
+
+    email_to: str = ""
+    smtp_host: str = ""
+    smtp_port: int = 465
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_ssl: bool = True
+    timeout: float = 15.0
+
+
+@dataclass
 class Config:
     agent: AgentConfig = field(default_factory=AgentConfig)
     qq: QQConfig = field(default_factory=QQConfig)
     websearch: WebSearchConfig = field(default_factory=WebSearchConfig)
     vision: VisionConfig = field(default_factory=VisionConfig)
     desktop: DesktopConfig = field(default_factory=DesktopConfig)
+    alert: AlertConfig = field(default_factory=AlertConfig)
     server: ServerConfig = field(default_factory=ServerConfig)
 
     # Runtime-only values, filled by load_config().
@@ -253,6 +273,7 @@ def public_dict(cfg: Config) -> dict[str, Any]:
         },
         "vision": {"enabled": cfg.vision.enabled},
         "desktop": {"enabled": cfg.desktop.enabled},
+        "alert": {"email": bool(cfg.alert.email_to)},
     }
 
 
@@ -264,6 +285,7 @@ __all__ = [
     "WebSearchConfig",
     "ServerConfig",
     "DesktopConfig",
+    "AlertConfig",
     "Config",
     "default_home",
     "ensure_dirs",

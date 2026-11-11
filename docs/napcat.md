@@ -68,6 +68,40 @@ group_whitelist = []
 
 启动后只跟自己的号聊，看草稿质量。确认后再把 `dry_run` 改 `false`，再逐步加白名单。
 
+## 掉线看门狗（可选）
+
+NapCat 掉登录时，服务会每 30 秒重连，但 NapCat 自己重启可能走二维码登录；
+人不在电脑前就没人知道。默认只做本地报警（`ALERT.json` + Windows 托盘气泡）。
+
+可选自动拉起一次：
+
+```toml
+[qq]
+auto_restart_napcat = false       # 默认关；打开前必须填 napcat_home
+restart_napcat_after_minutes = 2.0
+napcat_home = "C:\\NapCat\\Shell"
+napcat_launcher = "launcher-user.bat"
+```
+
+- 只尝试一次；如果仍连不上，说明需要扫码，反复重启只会打断扫码。
+- `napcat_home` 必须包含 `napcat_launcher`，否则不会执行。
+- 这是 Windows 专用能力；其他平台保持只报警。
+
+可选邮件提醒（QQ 掉线时消息收不到，邮件能跨设备到达）：
+
+```toml
+[alert]
+email_to = ""
+smtp_host = ""                    # 例如 smtp.qq.com
+smtp_port = 465
+smtp_user = ""
+smtp_password = ""                # QQ 邮箱用授权码，不是登录密码
+smtp_ssl = true
+timeout = 15.0
+```
+
+`email_to` 或 `smtp_host` 留空就不发。SMTP 密码是明文配置，注意本机权限。
+
 ## 常见问题
 
 - **401/403**：token 不一致。

@@ -171,3 +171,44 @@ def test_grant_covers_find_me_but_not_refusal():
     assert looks_like_grant("发吧")
     assert not looks_like_grant("别找我了")
     assert not looks_like_grant("他刚才说发吧")
+
+
+@pytest.mark.asyncio
+async def test_alert_email_is_noop_without_config(tmp_path: Path):
+    replier, cfg, agent, adapter = make(tmp_path)
+    await replier._alert_email(minutes=10, auto_restarted=True)
+
+
+@pytest.mark.asyncio
+async def test_alert_email_sends_when_configured(tmp_path: Path, monkeypatch):
+    import smtplib
+
+    replier, cfg, agent, adapter = make(tmp_path)
+    cfg.alert.email_to = "owner@example.com"
+    cfg.alert.smtp_host = "smtp.example.com"
+    cfg.alert.smtp_user = "owner@example.com"
+    cfg.alert.smtp_password = "x"
+    sent = []
+
+    class FakeSMTP:
+        def __init__(self, host, port, timeout=15):
+            self.host = host
+            self.port = port
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def login(self, user, password):
+            sent.append(("login", user))
+
+        def send_message(self, message):
+            sent.append(("send", message["To"]))
+            assert "已尝试自动重启" in message.get_content()
+
+    monkeypatch.setattr(smtplib, "SMTP_SSL", FakeSMTP)
+    await replier._alert_email(minutes=10, auto_restarted=True)
+    assert ("login", "owner@example.com") in sent
+    assert ("send", "owner@example.com") in sent

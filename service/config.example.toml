@@ -58,6 +58,14 @@ history_keep = 60
 history_peers = 20
 history_max_chars = 800
 
+# NapCat 掉线看门狗：默认只报警，不自动重启。
+# auto_restart_napcat=true 时，掉线到 restart_napcat_after_minutes 会自动执行
+# napcat_home\napcat_launcher <self_id> 一次；需要填 napcat_home。
+auto_restart_napcat = false
+restart_napcat_after_minutes = 2.0
+napcat_home = ""             # 例如 C:\NapCat\Shell
+napcat_launcher = "launcher-user.bat"
+
 [websearch]
 enabled = true
 provider = "bing"
@@ -78,6 +86,17 @@ thumb = "@480w_270h_1c.jpg"
 max_bytes = 4000000
 cache_dir = "data/image_cache"
 cache_days = 14
+
+[alert]
+# 可选：掉线超过阈值时发邮件（QQ 已经收不到消息时唯一能跨设备到达的渠道）。
+# 不需要就全部留空。
+email_to = ""
+smtp_host = ""               # QQ 邮箱：smtp.qq.com
+smtp_port = 465
+smtp_user = ""
+smtp_password = ""           # QQ 邮箱用授权码，不是登录密码
+smtp_ssl = true
+timeout = 15.0
 
 [desktop]
 # 高风险可选包：启用后号主可重启/关闭 DSH，或把指令投进 DSH 会话执行。

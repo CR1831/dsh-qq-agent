@@ -26,6 +26,8 @@ def test_home_paths_are_under_home(tmp_path: Path, monkeypatch: pytest.MonkeyPat
     assert Path(cfg.server.db_path) == tmp_path / "data" / "qq" / "qq.db"
     assert Path(cfg.qq.data_dir) == tmp_path / "data" / "qq"
     assert cfg.qq.dry_run is True
+    assert cfg.qq.auto_restart_napcat is False
+    assert cfg.alert.email_to == ""
 
 
 def test_utf8_bom_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
