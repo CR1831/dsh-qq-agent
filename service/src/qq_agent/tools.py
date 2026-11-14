@@ -24,6 +24,27 @@ from .store import Store
 
 PLATFORM_NAMES = {"qq": "QQ"}
 
+# Owner-only tools are not projected into group chats.  Private chats keep the
+# full list: hiding tools from a friend made the model claim it did not know
+# what DSH was.  Group chats do not need those schemas.
+GROUP_HIDDEN_TOOLS: frozenset[str] = frozenset(
+    {
+        "qq_friends",
+        "qq_friend_status",
+        "self_check",
+        "read_log",
+        "history_search",
+        "dsh_status",
+        "dsh_control",
+        "dsh_run",
+        "dsh_result",
+        "send_email",
+        "send_file",
+        "find_file",
+        "desk_task",
+    }
+)
+
 
 @dataclass
 class ToolContext:
@@ -861,7 +882,11 @@ class ToolRegistry:
         self.specs = {spec.name: spec for spec in build_tools(ctx.cfg)}
 
     def schemas(self) -> list[dict[str, Any]]:
-        return [spec.schema() for spec in self.specs.values()]
+        channel = str(self.ctx._extra.get("channel_id") or "")
+        specs = self.specs.values()
+        if channel.startswith("group:"):
+            specs = [spec for spec in specs if spec.name not in GROUP_HIDDEN_TOOLS]
+        return [spec.schema() for spec in specs]
 
     def describe(self) -> str:
         return "\n".join(f"- {spec.name}: {spec.description}" for spec in self.specs.values())
@@ -886,4 +911,10 @@ class ToolRegistry:
         return result
 
 
-__all__ = ["ToolContext", "ToolRegistry", "ToolSpec", "build_tools"]
+__all__ = [
+    "GROUP_HIDDEN_TOOLS",
+    "ToolContext",
+    "ToolRegistry",
+    "ToolSpec",
+    "build_tools",
+]

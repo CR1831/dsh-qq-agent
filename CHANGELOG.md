@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.5.0
+
+### Group tool projection
+
+- Group chats now receive only non-owner tools (`GROUP_HIDDEN_TOOLS`). Owner-only
+  tools such as `history_search`, `self_check`, `read_log`, `qq_friends`,
+  `qq_friend_status` and the optional desktop tools are not projected into group
+  schema context.
+- Private chats (owner and friends) keep the full tool list. Hiding tools from a
+  friend made the model claim it did not know what DSH was; capability awareness
+  and execution permission are separate.
+- Permission is still enforced by `_is_owner_channel` in each handler. The
+  projection is a context optimization, not the security boundary.
+
+### Internal
+
+- The private agent's `qq_media` extraction and tool-registry split were not
+  copied; the public QQ-only registry remains a single small module.
+
 ## 0.4.0
 
 ### NapCat watchdog

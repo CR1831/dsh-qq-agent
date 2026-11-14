@@ -120,3 +120,28 @@ async def test_read_log_owner_only(tmp_path: Path):
         assert "line two" in result["summary"]
     finally:
         store.close()
+
+
+def test_group_schemas_hide_owner_tools(tmp_path: Path):
+    ctx, adapter, store = make_ctx(tmp_path, channel="group:20001")
+    try:
+        names = {schema["function"]["name"] for schema in ToolRegistry(ctx).schemas()}
+        assert "social_search" in names
+        assert "social_send" in names
+        assert "history_search" not in names
+        assert "self_check" not in names
+        assert "read_log" not in names
+        assert "qq_friends" not in names
+    finally:
+        store.close()
+
+
+def test_private_schemas_keep_owner_tools(tmp_path: Path):
+    ctx, adapter, store = make_ctx(tmp_path, channel="private:10001")
+    try:
+        names = {schema["function"]["name"] for schema in ToolRegistry(ctx).schemas()}
+        assert "history_search" in names
+        assert "self_check" in names
+        assert "qq_friends" in names
+    finally:
+        store.close()

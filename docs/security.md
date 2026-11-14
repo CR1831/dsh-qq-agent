@@ -34,6 +34,10 @@ OneBot 11 是非官方协议。NapCat 驱动真实 QQ 客户端，腾讯的风�
 - `owner_uid` 在 `friend_whitelist` 里（否则号主自己都聊不了）；
 - `qq-agent doctor` 里 owner 检查 PASS。
 
+群聊 schema 不下发 owner-only 工具（`GROUP_HIDDEN_TOOLS`），这是上下文优化；
+真正执行时仍由 handler 的 `_is_owner_channel` 拒绝。私聊保留全量工具，避免
+模型对好友装傻。
+
 ### 3. 桌面控制（可选包，高风险）
 
 `extras/desktop` 是单独安装的 DSH bundle，提供 `dsh_status` / `dsh_control` /

@@ -46,6 +46,8 @@ multi-platform scraper, and it ships no character card.
 - Bounded tool loop with citations and a deterministic fallback.
 - Read-only DSH panel: heartbeat, WebSocket state, persona load state,
   allowlists, friend profiles, recent conversations, sanitized logs.
+- Group chats receive a reduced tool schema; private chats keep the full list
+  so the model does not understate its capabilities.
 - Optional desktop-control bundle, installed separately: `dsh_status`,
   `dsh_control`, `dsh_run` and `dsh_result`; owner-only, high risk, and off by
   default. It can restart DSH or submit tasks to a DSH session, including
@@ -118,6 +120,7 @@ NapCat / OneBot 11 接入一个 QQ 号，把私聊和群消息写进本地 SQLit
 - 有边界的工具循环；带引用，模型不可用时走确定性兜底。
 - 只读 DSH 面板：心跳、WS 状态、人格卡加载状态、白名单、好友画像、最近会话、
   已脱敏日志。
+- 群聊只下发精简后的工具 schema；私聊保留全量，避免模型低估自己的能力。
 - 可选桌面控制包，单独安装：`dsh_status`、`dsh_control`、`dsh_run`、
   `dsh_result`；只对号主开放，高风险，默认不装。它可以重启 DSH，或把任务投进
   DSH 会话执行，并支持多会话 / preset / isolate / 后台队列通知。

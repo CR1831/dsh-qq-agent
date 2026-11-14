@@ -1,6 +1,6 @@
 # dsh-qq-agent
 
-**版本 / Version:** 0.4.0 · [Changelog](CHANGELOG.md)
+**版本 / Version:** 0.5.0 · [Changelog](CHANGELOG.md)
 
 一个只做 QQ 的 OneBot 11 agent：收私聊/群消息，检索本地索引，按你自己放的人格卡回复；发送前过代码硬闸。
 
@@ -30,6 +30,15 @@ DSH 侧栏只读显示服务状态。回复使用**你自己提供**的人格卡
 每条外发都过白名单、限频、免打扰、随机延迟和全局 `dry_run`。
 
 完整的中英双语说明见 [docs/overview-bilingual.md](docs/overview-bilingual.md)。
+
+## 0.5.0 更新
+
+- 群聊只下发非号主工具（`GROUP_HIDDEN_TOOLS`），减少群聊 schema 占用；
+  私聊仍然保留全量工具。
+- 好友私聊**不精简**工具：试过精简后模型会对好友说「dsh 是什么」，
+  能力和使用边界要分开处理。
+- 群聊里 `history_search`、`self_check`、`read_log`、`qq_friends`、
+  `qq_friend_status`、桌面工具不会出现在 schema 里；私聊不受影响。
 
 ## 0.4.0 更新
 
@@ -234,6 +243,13 @@ DSH 会话在哪个目录工作，安装时一定要设。
 - 服务日志（已去掉消息正文）。
 
 它不解析人格卡，不直连 NapCat。`status.json` 由服务写，面板只读。
+
+## 群聊工具集
+
+群聊只下发非号主工具，避免把 `history_search`、`self_check`、`read_log`、
+`qq_friends`、`qq_friend_status`、桌面控制这些 schema 塞进群聊上下文。
+私聊（号主和好友）保持全量工具——好友会问「你能用 DSH 吗」，把工具藏起来
+会让模型装傻。真正的权限边界仍在每个 handler 的 `_is_owner_channel` 里。
 
 ## 隐私
 
